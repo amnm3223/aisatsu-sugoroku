@@ -153,50 +153,23 @@
         <section class="bg-gradient-to-r from-orange-400 to-amber-400 rounded-3xl p-5 text-white shadow-xl border-b-8 border-orange-600">
             <h3 class="text-center text-lg sm:text-xl font-extrabold mb-3 drop-shadow flex items-center justify-center gap-2">
                 <i class="fas fa-walking"></i>
-                <span data-kanji="あいさつをして マスを進めよう！" data-hiragana="あいさつをして ますを すすめよう！">あいさつをして マスを進めよう！</span>
+                <span data-kanji="お題のあいさつをして マスを進めよう！" data-hiragana="おだいの あいさつをして ますを すすめよう！">お題のあいさつをして マスを進めよう！</span>
             </h3>
 
             <!-- Next Tile Target Indicator & Direct Complete Button -->
-            <div id="next-tile-target-box" class="bg-white/20 backdrop-blur-md rounded-2xl p-4 mb-4 text-center border border-white/40 shadow-inner flex flex-col items-center justify-between gap-3">
+            <div id="next-tile-target-box" class="bg-white/20 backdrop-blur-md rounded-2xl p-5 text-center border border-white/40 shadow-inner flex flex-col items-center justify-between gap-4">
                 <div>
-                    <span class="text-xs font-bold text-amber-100 uppercase tracking-wider block" data-kanji="つぎのマスのお題" data-hiragana="つぎの ますの おだい">つぎのマスのお題</span>
-                    <p id="next-tile-target-text" class="text-lg sm:text-xl font-black text-white drop-shadow mt-1">
+                    <span class="text-xs font-bold text-amber-100 uppercase tracking-wider block" data-kanji="いまのお題" data-hiragana="いまの おだい">いまのお題</span>
+                    <p id="next-tile-target-text" class="text-xl sm:text-2xl font-black text-white drop-shadow mt-1">
                         1マス目: 「おはよう」と元気にあいさつ
                     </p>
                 </div>
 
-                <!-- MAIN BUTTON TO COMPLETE CURRENT TILE MISSION directly -->
-                <button onclick="advanceWithCurrentTile()" class="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-yellow-300 to-amber-300 hover:from-yellow-400 hover:to-amber-400 active:scale-95 text-amber-950 font-black rounded-2xl shadow-lg border-b-4 border-yellow-600 flex items-center justify-center gap-2 text-base sm:text-lg transition transform">
-                    <span class="text-2xl">✨</span>
-                    <span id="complete-tile-btn-text" data-kanji="このお題を達成して進む！" data-hiragana="この おだいを たっせいして すすむ！">このお題を達成して進む！</span>
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- Quick Greeting Buttons Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-1">
-                <button onclick="advanceStep('おはよう')" class="bg-white hover:bg-orange-50 active:scale-95 text-orange-600 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-orange-200 flex flex-col items-center justify-center transition">
-                    <span class="text-2xl">🌅</span>
-                    <span class="text-xs font-bold text-orange-400" data-kanji="朝のあいさつ" data-hiragana="あさの あいさつ">朝のあいさつ</span>
-                    <span class="text-lg font-black text-orange-500">「おはよう」</span>
-                </button>
-
-                <button onclick="advanceStep('こんにちは')" class="bg-white hover:bg-amber-50 active:scale-95 text-amber-700 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-amber-200 flex flex-col items-center justify-center transition">
-                    <span class="text-2xl">☀️</span>
-                    <span class="text-xs font-bold text-amber-400" data-kanji="昼のあいさつ" data-hiragana="ひるの あいさつ">昼のあいさつ</span>
-                    <span class="text-lg font-black text-amber-500">「こんにちは」</span>
-                </button>
-
-                <button onclick="advanceStep('さようなら')" class="bg-white hover:bg-yellow-50 active:scale-95 text-yellow-800 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-yellow-200 flex flex-col items-center justify-center transition">
-                    <span class="text-2xl">🎒</span>
-                    <span class="text-xs font-bold text-yellow-500" data-kanji="帰りのあいさつ" data-hiragana="かえりの あいさつ">帰りのあいさつ</span>
-                    <span class="text-lg font-black text-yellow-600">「さようなら」</span>
-                </button>
-
-                <button onclick="advanceStep('ありがとう')" class="bg-white hover:bg-rose-50 active:scale-95 text-rose-600 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-rose-200 flex flex-col items-center justify-center transition">
-                    <span class="text-2xl">💖</span>
-                    <span class="text-xs font-bold text-rose-400" data-kanji="感謝のあいさつ" data-hiragana="かんしゃの あいさつ">感謝のあいさつ</span>
-                    <span class="text-lg font-black text-rose-500">「ありがとう」</span>
+                <!-- SINGLE SIMPLE "DEKITA" BUTTON -->
+                <button onclick="advanceWithCurrentTile()" class="w-full sm:w-2/3 px-8 py-4 bg-gradient-to-r from-yellow-300 to-amber-300 hover:from-yellow-400 hover:to-amber-400 active:scale-95 text-amber-950 font-black rounded-2xl shadow-xl border-b-4 border-yellow-600 flex items-center justify-center gap-3 text-2xl transition transform">
+                    <span class="text-3xl">✨</span>
+                    <span id="complete-tile-btn-text" data-kanji="できた！" data-hiragana="できた！">できた！</span>
+                    <span class="text-3xl">✨</span>
                 </button>
             </div>
         </section>
@@ -413,23 +386,18 @@
         </div>
     </div>
 
-    <!-- FIREBASE & JS LOGIC -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Initialization
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'greeting-sugoroku-school';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "demo", authDomain: "demo.firebaseapp.com", projectId: "demo", storageBucket: "demo.appspot.com"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let currentUser = null;
+    <!-- ZERO-CONFIG REALTIME SYNC LOGIC (NO FIREBASE REGISTRATION NEEDED) -->
+    <script>
+        // Unique App Storage ID for this school
+        const STORAGE_KEY = 'school_sugoroku_all_players_data_v1';
+        const CONFIG_KEY = 'school_sugoroku_config_tiles_v1';
+        
+        // Generate a random client ID for this browser session if not set
+        let myClientId = localStorage.getItem('sugoroku_my_client_id');
+        if (!myClientId) {
+            myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('sugoroku_my_client_id', myClientId);
+        }
 
         // Default list of greeting ideas thought by kids
         const DEFAULT_GREETING_POOL = [
@@ -446,7 +414,7 @@
             "『また明日ね！』と元気に返す",
             "地域の人に『こんにちは！』",
             "保健室の先生に『しつれいします』",
-            "『ごちそうさまでした』を伝えよう",
+            "『ごちそうさでした』を伝えよう",
             "ハイタッチであいさつ！",
             "ぺこりと1秒おじぎ"
         ];
@@ -458,7 +426,6 @@
             for (let i = 1; i <= 100; i++) {
                 const randomIdea = poolArray[(i - 1) % poolArray.length];
                 let icon = icons[(i - 1) % icons.length];
-
                 if (i === 100) icon = "🕰️";
 
                 tiles.push({
@@ -487,6 +454,7 @@
         };
 
         let remoteUsersMap = {};
+        let broadcastChannel = null;
 
         function getCurrentMonthKey() {
             const now = new Date();
@@ -506,7 +474,6 @@
             appState.currentMonth = m;
         }
 
-        // Calculate current card floor level (100 steps per card)
         function getCardLevel(step) {
             return Math.floor((step - 1) / 100) + 1;
         }
@@ -515,26 +482,34 @@
             return ((step - 1) % 100) + 1;
         }
 
-        // Local Storage
+        // Local Data Persistence
         function loadSavedLocalData() {
             const saved = localStorage.getItem('greeting_sugoroku_app_data_v4');
             if (saved) {
-                try {
-                    appState = { ...appState, ...JSON.parse(saved) };
-                } catch(e) {}
+                try { appState = { ...appState, ...JSON.parse(saved) }; } catch(e) {}
             }
             const currentM = getCurrentMonthKey();
             if (!appState.monthlySteps[currentM]) {
                 appState.monthlySteps[currentM] = 1;
             }
             appState.currentMonth = currentM;
+
+            // Load Custom Tiles Config
+            const savedConfig = localStorage.getItem(CONFIG_KEY);
+            if (savedConfig) {
+                try {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    if (parsedConfig.pool) GREETING_POOL = parsedConfig.pool;
+                    if (parsedConfig.tiles) MAP_TILES = parsedConfig.tiles;
+                } catch(e) {}
+            }
         }
 
         function saveLocalData() {
             localStorage.setItem('greeting_sugoroku_app_data_v4', JSON.stringify(appState));
         }
 
-        // Sound Engine
+        // Sound Synthesizer
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (!appState.soundEnabled) return;
@@ -572,65 +547,72 @@
             }
         }
 
-        // Firebase Auth & Realtime Sync
-        async function initFirebaseSync() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                console.warn("Auth fallback", e);
-            }
+        // Zero-Config Multi-Tab / Multi-Device Sync Engine
+        function initZeroConfigSync() {
+            if ('BroadcastChannel' in window) {
+                broadcastChannel = new BroadcastChannel('school_sugoroku_channel');
+                broadcastChannel.onmessage = (event) => {
+                    if (!event.data) return;
 
-            onAuthStateChanged(auth, (user) => {
-                if (!user) return;
-                currentUser = user;
-
-                // Sync custom tiles from public storage
-                const tilesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'map_tiles');
-                onSnapshot(tilesDocRef, (snap) => {
-                    if (snap.exists()) {
-                        const d = snap.data();
-                        if (d.tiles) MAP_TILES = d.tiles;
-                        if (d.pool) GREETING_POOL = d.pool;
+                    if (event.data.type === 'PLAYER_UPDATE') {
+                        if (event.data.uid !== myClientId) {
+                            remoteUsersMap[event.data.uid] = event.data.playerData;
+                            renderUI();
+                        }
+                    } else if (event.data.type === 'CONFIG_UPDATE') {
+                        GREETING_POOL = event.data.pool;
+                        MAP_TILES = event.data.tiles;
+                        localStorage.setItem(CONFIG_KEY, JSON.stringify({ pool: GREETING_POOL, tiles: MAP_TILES }));
                         renderUI();
                     }
-                }, (err) => console.log(err));
+                };
+            }
 
-                // Listen to public players
-                const usersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
-                onSnapshot(usersColRef, (snapshot) => {
-                    remoteUsersMap = {};
-                    snapshot.forEach(docSnap => {
-                        if (docSnap.id !== currentUser.uid) {
-                            remoteUsersMap[docSnap.id] = docSnap.data();
-                        }
-                    });
-                    renderUI();
-                }, (err) => console.log(err));
-
-                syncMyDataToCloud();
+            // Sync using Shared Local Storage Polling for device-wide sync
+            window.addEventListener('storage', (e) => {
+                if (e.key === STORAGE_KEY && e.newValue) {
+                    try {
+                        const allData = JSON.parse(e.newValue);
+                        delete allData[myClientId];
+                        remoteUsersMap = allData;
+                        renderUI();
+                    } catch(err) {}
+                } else if (e.key === CONFIG_KEY && e.newValue) {
+                    try {
+                        const parsedConfig = JSON.parse(e.newValue);
+                        if (parsedConfig.pool) GREETING_POOL = parsedConfig.pool;
+                        if (parsedConfig.tiles) MAP_TILES = parsedConfig.tiles;
+                        renderUI();
+                    } catch(err) {}
+                }
             });
+
+            syncMyDataToCloud();
         }
 
-        async function syncMyDataToCloud() {
-            if (!currentUser) return;
-            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid);
-            try {
-                await setDoc(userDocRef, {
-                    name: appState.userName,
-                    grade: appState.userGrade,
-                    avatar: appState.userAvatar,
-                    currentMonth: getCurrentMonthKey(),
-                    step: getCurrentStep(),
-                    monthlySteps: appState.monthlySteps,
-                    updatedAt: Date.now()
-                }, { merge: true });
-            } catch (e) {
-                console.error("Cloud sync error", e);
+        function syncMyDataToCloud() {
+            const myPlayerData = {
+                name: appState.userName,
+                grade: appState.userGrade,
+                avatar: appState.userAvatar,
+                currentMonth: getCurrentMonthKey(),
+                step: getCurrentStep(),
+                monthlySteps: appState.monthlySteps,
+                updatedAt: Date.now()
+            };
+
+            // 1. Broadcast via Channel
+            if (broadcastChannel) {
+                broadcastChannel.postMessage({ type: 'PLAYER_UPDATE', uid: myClientId, playerData: myPlayerData });
             }
+
+            // 2. Save into shared storage
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                let allPlayers = stored ? JSON.parse(stored) : {};
+                allPlayers[myClientId] = myPlayerData;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(allPlayers));
+            } catch(e) {}
         }
 
         // Render UI
@@ -649,14 +631,14 @@
             document.getElementById('current-card-level-display').innerText = cardLevel;
             document.getElementById('current-card-badge').innerText = appState.isKanji ? `${cardLevel}階カード (${(cardLevel-1)*100+1}~${cardLevel*100})` : `${cardLevel}かい かーど (${(cardLevel-1)*100+1}~${cardLevel*100})`;
 
-            // Next Tile Target Text
+            // Target Tile Text
             const currentTileData = MAP_TILES[(tileInCard - 1) % MAP_TILES.length];
             if (currentTileData) {
                 const targetText = appState.isKanji ? currentTileData.kanji : currentTileData.hiragana;
                 document.getElementById('next-tile-target-text').innerText = `${currentStep}マス目: ${targetText}`;
             }
 
-            // Remote players ranking for current month
+            // Leaderboard Sorting
             const remotePlayersList = Object.values(remoteUsersMap).map(p => {
                 const pStep = (p.monthlySteps && p.monthlySteps[currentMonth]) || (p.currentMonth === currentMonth ? p.step : 1);
                 return { ...p, step: pStep };
@@ -670,7 +652,7 @@
             const userRank = allPlayers.findIndex(p => p.isUser) + 1;
             document.getElementById('school-rank-display').innerText = userRank;
 
-            // Render 100 Tiles for the active card
+            // Render Tiles
             const gridContainer = document.getElementById('sugoroku-grid');
             gridContainer.innerHTML = '';
 
@@ -707,7 +689,7 @@
                 gridContainer.appendChild(tileEl);
             }
 
-            // Render Leaderboard
+            // Render Leaderboard List
             const listContainer = document.getElementById('friends-list');
             listContainer.innerHTML = '';
             allPlayers.forEach((player, idx) => {
@@ -738,7 +720,7 @@
             });
         }
 
-        // Actions
+        // Step Forward
         window.advanceStep = function(greetingLabel) {
             let currentStep = getCurrentStep();
             const prevCard = getCardLevel(currentStep);
@@ -788,7 +770,7 @@
             renderUI();
         };
 
-        // Modal Open / Close Functions
+        // Admin Modals
         window.openAdminAuthModal = function() {
             document.getElementById('admin-pass-input').value = '';
             document.getElementById('admin-auth-view').classList.remove('hidden');
@@ -903,7 +885,6 @@
             saveLocalData();
         };
 
-        // Admin Customization Editor Tabs & Shuffling Logic
         window.switchAdminTab = function(tab) {
             const btnPool = document.getElementById('tab-btn-pool');
             const btnTiles = document.getElementById('tab-btn-tiles');
@@ -954,7 +935,6 @@
 
             GREETING_POOL = poolLines;
 
-            // Fisher-Yates shuffle helper
             const shuffledPool = [...GREETING_POOL];
             for (let i = shuffledPool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -972,7 +952,7 @@
             renderAdminEditorList();
         };
 
-        window.saveAdminTiles = async function() {
+        window.saveAdminTiles = function() {
             const poolLines = document.getElementById('admin-pool-textarea').value
                 .split('\n')
                 .map(l => l.trim())
@@ -999,13 +979,11 @@
                 MAP_TILES = updatedTiles;
             }
 
-            if (currentUser) {
-                const tilesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'map_tiles');
-                try {
-                    await setDoc(tilesDocRef, { pool: GREETING_POOL, tiles: MAP_TILES, updatedAt: Date.now() });
-                } catch (e) {
-                    console.error("Failed to sync tiles to cloud", e);
-                }
+            // Broadcast new config to all users
+            const configPayload = { pool: GREETING_POOL, tiles: MAP_TILES };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(configPayload));
+            if (broadcastChannel) {
+                broadcastChannel.postMessage({ type: 'CONFIG_UPDATE', ...configPayload });
             }
 
             renderUI();
@@ -1013,12 +991,12 @@
             alert('全校児童に新しいコースが配信・保存されました！');
         };
 
-        // Window Onload
+        // Initialize App
         window.onload = function() {
             loadSavedLocalData();
             setKanjiMode(appState.isKanji);
             renderUI();
-            initFirebaseSync();
+            initZeroConfigSync();
         };
     </script>
 </body>
