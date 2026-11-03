@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あいさつスタンプカード</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #FFFBEB;
+            touch-action: manipulation;
+        }
+        @keyframes stamp-bounce {
+            0% { transform: scale(3) rotate(-15deg); opacity: 0; }
+            50% { transform: scale(0.8) rotate(5deg); opacity: 1; }
+            75% { transform: scale(1.1) rotate(-3deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .animate-stamp {
+            animation: stamp-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes move-piece {
+            0% { transform: translateY(-10px) scale(1.2); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        .animate-piece {
+            animation: move-piece 0.3s ease-out;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEF3C7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #F59E0B;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between select-none pb-10">
+
+    <!-- TOP HEADER / NAV -->
+    <header class="bg-amber-400 border-b-4 border-amber-500 shadow-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+            <!-- App Title -->
+            <div class="flex items-center space-x-2">
+                <span class="text-3xl">🕰️</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-amber-950 tracking-wide">
+                        <span data-kanji="100階だての学校とけいだい すごろく" data-hiragana="100かいだての がっこう とけいだい すごろく">100階だての学校とけいだい すごろく</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Settings & Mode Toggles -->
+            <div class="flex items-center space-x-2">
+                <!-- Kanji Toggle Switch -->
+                <div class="bg-amber-100 p-1 rounded-full border-2 border-amber-500 flex items-center shadow-inner">
+                    <button id="mode-hiragana" onclick="setKanjiMode(false)" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 bg-amber-500 text-white shadow-sm">
+                        ひらがな
+                    </button>
+                    <button id="mode-kanji" onclick="setKanjiMode(true)" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 text-amber-800 hover:text-amber-950">
+                        漢字あり
+                    </button>
+                </div>
+
+                <!-- History Button -->
+                <button onclick="openHistoryModal()" class="px-3 py-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow flex items-center gap-1 transition">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span data-kanji="つきの きろく" data-hiragana="つきの きろく">つきの きろく</span>
+                </button>
+
+                <!-- Admin Button -->
+                <button onclick="openAdminAuthModal()" class="px-3 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow flex items-center gap-1 transition">
+                    <i class="fas fa-cog"></i>
+                    <span data-kanji="かんりしゃ" data-hiragana="かんりしゃ">かんりしゃ</span>
+                </button>
+
+                <!-- Sound Toggle -->
+                <button id="sound-btn" onclick="toggleSound()" class="w-9 h-9 rounded-full bg-white border-2 border-amber-500 text-amber-600 flex items-center justify-center shadow font-bold hover:bg-amber-50 transition">
+                    <i class="fas fa-volume-up text-base" id="sound-icon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-5xl mx-auto px-4 pt-6 w-full flex-grow space-y-6">
+
+        <!-- USER PROFILE & RANK CARD -->
+        <section class="bg-white rounded-3xl p-5 border-4 border-amber-200 shadow-lg relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Profile Left: Avatar & Name -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="openProfileModal()" class="relative group">
+                        <div id="user-avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-100 border-4 border-amber-400 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-105 transition transform">
+                            🦁
+                        </div>
+                        <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white text-xs p-1 px-2 rounded-full font-bold shadow">
+                            <i class="fas fa-pen"></i>
+                        </span>
+                    </button>
+                    <div>
+                        <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+                            <span id="user-grade-badge" class="bg-orange-100 text-orange-700 font-extrabold text-xs px-2.5 py-1 rounded-lg border border-orange-300">
+                                1ねんせい
+                            </span>
+                            <span id="current-card-badge" class="bg-amber-500 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg shadow">
+                                1かいカード (1~100)
+                            </span>
+                            <span id="current-month-badge" class="bg-amber-100 text-amber-800 font-bold text-xs px-2 py-0.5 rounded-md border border-amber-300">
+                                今月: 2026年11月
+                            </span>
+                        </div>
+                        <h2 id="user-name-display" onclick="openProfileModal()" class="text-xl sm:text-2xl font-black text-slate-800 cursor-pointer hover:text-amber-600 transition flex items-center gap-2 mt-1">
+                            <span>なまえを入力してね</span>
+                            <i class="fas fa-edit text-sm text-slate-400"></i>
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Profile Right: School Rank & Current Floor -->
+                <div class="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-3 rounded-2xl border-2 border-amber-200 w-full sm:w-auto justify-around shadow-inner">
+                    <div class="text-center px-2">
+                        <p class="text-xs font-bold text-amber-700" data-kanji="挑戦中のカード" data-hiragana="ちょうせんちゅうの かーど">挑戦中のカード</p>
+                        <p class="text-2xl sm:text-3xl font-black text-amber-600"><span id="current-card-level-display">1</span> <span class="text-xs" data-kanji="階カード" data-hiragana="かい かーど">階カード</span></p>
+                    </div>
+                    <div class="h-8 w-0.5 bg-amber-200"></div>
+                    <div class="text-center px-2">
+                        <p class="text-xs font-bold text-amber-700" data-kanji="通算スタンプ" data-hiragana="つうさん すたんぷ">通算スタンプ</p>
+                        <p class="text-2xl sm:text-3xl font-black text-orange-600"><span id="current-step-display">1</span> <span class="text-xs" data-kanji="マス" data-hiragana="ます">マス</span></p>
+                    </div>
+                    <div class="h-8 w-0.5 bg-amber-200"></div>
+                    <div class="text-center px-2">
+                        <p class="text-xs font-bold text-amber-700" data-kanji="今月のじゅんい" data-hiragana="こんげつの じゅんい">今月のじゅんい</p>
+                        <p class="text-2xl sm:text-3xl font-black text-rose-600"><span id="school-rank-display">1</span> <span class="text-xs" data-kanji="位" data-hiragana="い">位</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTION BUTTONS (GREETINGS TO advance) -->
+        <section class="bg-gradient-to-r from-orange-400 to-amber-400 rounded-3xl p-5 text-white shadow-xl border-b-8 border-orange-600">
+            <h3 class="text-center text-lg sm:text-xl font-extrabold mb-3 drop-shadow flex items-center justify-center gap-2">
+                <i class="fas fa-walking"></i>
+                <span data-kanji="あいさつをして マスを進めよう！" data-hiragana="あいさつをして ますを すすめよう！">あいさつをして マスを進めよう！</span>
+            </h3>
+
+            <!-- Next Tile Target Indicator & Direct Complete Button -->
+            <div id="next-tile-target-box" class="bg-white/20 backdrop-blur-md rounded-2xl p-4 mb-4 text-center border border-white/40 shadow-inner flex flex-col items-center justify-between gap-3">
+                <div>
+                    <span class="text-xs font-bold text-amber-100 uppercase tracking-wider block" data-kanji="つぎのマスのお題" data-hiragana="つぎの ますの おだい">つぎのマスのお題</span>
+                    <p id="next-tile-target-text" class="text-lg sm:text-xl font-black text-white drop-shadow mt-1">
+                        1マス目: 「おはよう」と元気にあいさつ
+                    </p>
+                </div>
+
+                <!-- MAIN BUTTON TO COMPLETE CURRENT TILE MISSION directly -->
+                <button onclick="advanceWithCurrentTile()" class="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-yellow-300 to-amber-300 hover:from-yellow-400 hover:to-amber-400 active:scale-95 text-amber-950 font-black rounded-2xl shadow-lg border-b-4 border-yellow-600 flex items-center justify-center gap-2 text-base sm:text-lg transition transform">
+                    <span class="text-2xl">✨</span>
+                    <span id="complete-tile-btn-text" data-kanji="このお題を達成して進む！" data-hiragana="この おだいを たっせいして すすむ！">このお題を達成して進む！</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Quick Greeting Buttons Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-1">
+                <button onclick="advanceStep('おはよう')" class="bg-white hover:bg-orange-50 active:scale-95 text-orange-600 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-orange-200 flex flex-col items-center justify-center transition">
+                    <span class="text-2xl">🌅</span>
+                    <span class="text-xs font-bold text-orange-400" data-kanji="朝のあいさつ" data-hiragana="あさの あいさつ">朝のあいさつ</span>
+                    <span class="text-lg font-black text-orange-500">「おはよう」</span>
+                </button>
+
+                <button onclick="advanceStep('こんにちは')" class="bg-white hover:bg-amber-50 active:scale-95 text-amber-700 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-amber-200 flex flex-col items-center justify-center transition">
+                    <span class="text-2xl">☀️</span>
+                    <span class="text-xs font-bold text-amber-400" data-kanji="昼のあいさつ" data-hiragana="ひるの あいさつ">昼のあいさつ</span>
+                    <span class="text-lg font-black text-amber-500">「こんにちは」</span>
+                </button>
+
+                <button onclick="advanceStep('さようなら')" class="bg-white hover:bg-yellow-50 active:scale-95 text-yellow-800 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-yellow-200 flex flex-col items-center justify-center transition">
+                    <span class="text-2xl">🎒</span>
+                    <span class="text-xs font-bold text-yellow-500" data-kanji="帰りのあいさつ" data-hiragana="かえりの あいさつ">帰りのあいさつ</span>
+                    <span class="text-lg font-black text-yellow-600">「さようなら」</span>
+                </button>
+
+                <button onclick="advanceStep('ありがとう')" class="bg-white hover:bg-rose-50 active:scale-95 text-rose-600 font-extrabold py-3 px-2 rounded-2xl shadow-md border-b-4 border-rose-200 flex flex-col items-center justify-center transition">
+                    <span class="text-2xl">💖</span>
+                    <span class="text-xs font-bold text-rose-400" data-kanji="感謝のあいさつ" data-hiragana="かんしゃの あいさつ">感謝のあいさつ</span>
+                    <span class="text-lg font-black text-rose-500">「ありがとう」</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- SUGOROKU MAP DISPLAY BOARD (100 FLOORS) -->
+        <section class="bg-white rounded-3xl p-5 border-4 border-amber-300 shadow-xl space-y-4">
+            <!-- Header & Jump Navigation -->
+            <div class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-dashed border-amber-200 pb-3 gap-2">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-black text-amber-900 flex items-center gap-2">
+                        <i class="fas fa-building text-amber-500"></i>
+                        <span data-kanji="100階だて 学校マップ" data-hiragana="100かいだて がっこうまっぷ">100階だて 学校マップ</span>
+                    </h3>
+                    <p class="text-xs text-slate-500" data-kanji="1あいさつ ＝ 1階（1マス）進むよ！" data-hiragana="1あいさつ ＝ 1かい（1ます）すすむよ！">1あいさつ ＝ 1階（1マス）進むよ！</p>
+                </div>
+                
+                <!-- Fast Jump Controls -->
+                <div class="flex items-center space-x-1 text-xs font-bold overflow-x-auto max-w-full pb-1">
+                    <button onclick="jumpToTileSection(1)" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg">1~20階</button>
+                    <button onclick="jumpToTileSection(21)" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg">21~40階</button>
+                    <button onclick="jumpToTileSection(41)" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg">41~60階</button>
+                    <button onclick="jumpToTileSection(61)" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg">61~80階</button>
+                    <button onclick="jumpToTileSection(81)" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg">81~100階</button>
+                </div>
+            </div>
+
+            <!-- Sugoroku Course Map Container -->
+            <div id="map-scroll-container" class="relative bg-amber-50/80 rounded-2xl p-4 border-2 border-amber-200 max-h-[460px] overflow-y-auto">
+                <!-- Path Track Grid -->
+                <div id="sugoroku-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                    <!-- 100 tiles generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- LEADERBOARD / SCHOOL FRIENDS LIST -->
+        <section class="bg-amber-100/70 rounded-3xl p-5 border-2 border-amber-300">
+            <h3 class="text-md sm:text-lg font-black text-amber-900 mb-3 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-users text-amber-600"></i>
+                    <span data-kanji="全校のみんなの位置（ランキング）" data-hiragana="ぜんこうの みんなの いち（らんきんぐ）">全校のみんなの位置（ランキング）</span>
+                </span>
+                <span class="text-xs text-amber-700 bg-amber-200 px-2 py-1 rounded-full" id="online-users-count">リアルタイム同期中</span>
+            </h3>
+            <div id="friends-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <!-- Dynamic ranking list -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-amber-800/70 py-4 mt-8 font-bold">
+        <p data-kanji="© 100階だて学校あいさつすごろく - てっぺんの時計台をめざせ！" data-hiragana="© 100かいだてがっこう あいさつすごろく - てっぺんの とけいだいをつざせ！">
+            © 100階だて学校あいさつすごろく - てっぺんの時計台をめざせ！
+        </p>
+    </footer>
+
+    <!-- MODAL: ADMIN AUTH & TILES EDITOR -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl border-4 border-amber-500 p-6 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl space-y-4">
+            
+            <!-- Auth Screen -->
+            <div id="admin-auth-view" class="space-y-4 py-4 text-center">
+                <h3 class="text-xl font-black text-amber-900" data-kanji="かんりしゃ（先生用）ログイン" data-hiragana="かんりしゃ（せんせいよう）ろぐいん">かんりしゃ（先生用）ログイン</h3>
+                <p class="text-xs text-slate-500" data-kanji="パスワードを入力してください（初期値: 1234）" data-hiragana="ぱすわーどを にゅうりょくしてください（しょきち: 1234）">パスワードを入力してください（初期値: 1234）</p>
+                
+                <input type="password" id="admin-pass-input" placeholder="****" class="w-48 px-4 py-2 border-2 border-amber-400 rounded-xl text-center text-xl font-bold">
+                
+                <div class="flex justify-center gap-2 pt-2">
+                    <button onclick="closeAdminModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 font-bold text-xs rounded-xl">キャンセル</button>
+                    <button onclick="verifyAdminPass()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow">ログイン</button>
+                </div>
+            </div>
+
+            <!-- Editor Screen -->
+            <div id="admin-editor-view" class="hidden flex-col flex-1 overflow-hidden space-y-3">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="text-lg font-black text-amber-900" data-kanji="あいさつお題プールの編集＆ランダム配置" data-hiragana="あいさつおだい ぷーるの へんしゅう＆らんだむ はいち">あいさつお題プールの編集＆ランダム配置</h3>
+                    <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <p class="text-xs text-slate-600">企画委員が考えた「あいさつのお題」を登録・編集できます。「ランダムに並べ替えて全校配信」を押すと、100マスにランダムに配置されます！</p>
+
+                <!-- Tabs: Pool Editor vs 100 Tile Preview -->
+                <div class="flex border-b text-xs font-bold gap-2">
+                    <button onclick="switchAdminTab('pool')" id="tab-btn-pool" class="px-3 py-1.5 border-b-2 border-amber-500 text-amber-700">お題リスト（企画アイデア）</button>
+                    <button onclick="switchAdminTab('tiles')" id="tab-btn-tiles" class="px-3 py-1.5 text-slate-500 hover:text-slate-700">100マスの配置プレビュー</button>
+                </div>
+
+                <!-- Admin Tab 1: Pool List -->
+                <div id="admin-tab-pool" class="flex-1 overflow-y-auto space-y-2 pr-2 border rounded-xl p-2 bg-amber-50">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-amber-900">登録済みお題（改行で複数登録可能）</span>
+                    </div>
+                    <textarea id="admin-pool-textarea" rows="10" class="w-full p-2 border rounded-xl text-xs font-bold font-mono focus:outline-none focus:border-amber-500" placeholder="1行に1つずつお題を入力してください"></textarea>
+                </div>
+
+                <!-- Admin Tab 2: 100 Tile Direct Edit -->
+                <div id="admin-tab-tiles" class="hidden flex-1 overflow-y-auto space-y-2 pr-2 border rounded-xl p-2 bg-amber-50">
+                    <div id="admin-tile-list" class="space-y-2">
+                        <!-- Dynamic 100 tile inputs -->
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-between items-center pt-2 gap-2">
+                    <button onclick="resetTilesToDefault()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl">
+                        初期お題にもどす
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="shuffleAndDistributePool()" class="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs rounded-xl shadow">
+                            🔀 ランダムに並べ替える
+                        </button>
+                        <button onclick="saveAdminTiles()" class="px-5 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs rounded-xl shadow-lg">
+                            全児童に配信して保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL: PROFILE & NAME EDIT -->
+    <div id="profile-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl border-4 border-amber-400 p-6 max-w-md w-full shadow-2xl space-y-4 animate-stamp">
+            <h3 class="text-xl font-black text-amber-900 text-center" data-kanji="プロフィール設定" data-hiragana="ぷろふぃーる せってい">プロフィール設定</h3>
+            
+            <!-- Name Input -->
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1" data-kanji="なまえ" data-hiragana="なまえ">なまえ</label>
+                <input type="text" id="name-input" placeholder="なまえを入力してね" class="w-full px-4 py-3 rounded-2xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none font-bold text-lg">
+            </div>
+
+            <!-- Grade Select -->
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1" data-kanji="学年" data-hiragana="がくねん">学年</label>
+                <select id="grade-select" class="w-full px-4 py-3 rounded-2xl border-2 border-amber-300 focus:border-amber-500 focus:outline-none font-bold text-slate-700">
+                    <option value="1年生">1ねんせい</option>
+                    <option value="2年生">2ねんせい</option>
+                    <option value="3年生">3ねんせい</option>
+                    <option value="4年生">4ねんせい</option>
+                    <option value="5年生">5ねんせい</option>
+                    <option value="6年生">6ねんせい</option>
+                </select>
+            </div>
+
+            <!-- Avatar Select -->
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1" data-kanji="アイコン" data-hiragana="あいこん">アイコン</label>
+                <div id="avatar-selector" class="grid grid-cols-5 gap-2">
+                    <!-- Avatars -->
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeProfileModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 text-xs rounded-xl">キャンセル</button>
+                <button onclick="saveProfile()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 font-bold text-white text-xs rounded-xl shadow">ほぞん</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MONTHLY HISTORY -->
+    <div id="history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl border-4 border-amber-400 p-6 max-w-md w-full shadow-2xl space-y-4 animate-stamp">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-xl font-black text-amber-900" data-kanji="毎月の進んだ記録" data-hiragana="まいつきの すすんだ きろく">毎月の進んだ記録</h3>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <p class="text-xs text-slate-500" data-kanji="月ごとにどこまで登れたかの記録です。毎月1日にあたらしく1階からスタートします！" data-hiragana="つきごとに どこまで のぼれたかの きろくです。まいつき1にしに あたらしく 1かいから すたーとします！">
+                月ごとにどこまで登れたかの記録です。毎月1日にあたらしく1階からスタートします！
+            </p>
+
+            <div id="monthly-history-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Filled dynamically by JS -->
+            </div>
+
+            <button onclick="closeHistoryModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl shadow transition">
+                とじる
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: GOAL CELEBRATION (CLOCK TOWER) -->
+    <div id="goal-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-amber-50 rounded-3xl border-8 border-yellow-400 p-6 max-w-lg w-full shadow-2xl space-y-4 text-center relative overflow-hidden animate-stamp">
+            <div class="inline-block bg-yellow-400 text-amber-950 font-black px-4 py-1 rounded-full text-sm shadow mb-1" data-kanji="✨ 100階登頂！時計台ゴール！ ✨" data-hiragana="✨ 100かいとうちょう！とけいだい ごーる！ ✨">
+                ✨ 100階登頂！時計台ゴール！ ✨
+            </div>
+
+            <h2 class="text-3xl font-black text-amber-900" data-kanji="てっぺんの時計台に とうちゃく！" data-hiragana="てっぺんの とけいだいに とうちゃく！">てっぺんの時計台に 到着！</h2>
+            
+            <p class="text-2xl font-black text-amber-700 border-b-2 border-amber-300 pb-2 inline-block px-8" id="goal-user-name">
+                〇〇 さん
+            </p>
+
+            <p class="text-sm sm:text-base font-bold text-slate-700 leading-relaxed px-2" id="goal-message">
+                あいさつを 100かい かさねて<br>
+                100かいだての がっこうの てっぺんにある<br>
+                「とけいだい」に たどりつきました！<br>
+                学校の あいさつチャンピオンです！
+            </p>
+
+            <div class="py-2 flex justify-center items-center gap-4">
+                <div class="w-20 h-20 rounded-full bg-yellow-400 flex items-center justify-center text-4xl shadow-lg border-4 border-white animate-bounce">
+                    🕰️
+                </div>
+            </div>
+
+            <button onclick="restartSugorokuLoop()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black py-3.5 rounded-2xl shadow-lg border-b-4 border-orange-700 text-lg transition transform active:scale-95">
+                <span data-kanji="もう1周 登る！（2つめの時計台へ）" data-hiragana="もう1しゅう のぼる！（2つめの とけいだいへ）">もう1周 登る！（2つめの時計台へ）</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- FIREBASE & JS LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Initialization
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'greeting-sugoroku-school';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo", authDomain: "demo.firebaseapp.com", projectId: "demo", storageBucket: "demo.appspot.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        // Default list of greeting ideas thought by kids
+        const DEFAULT_GREETING_POOL = [
+            "目を見て『おはよう！』",
+            "笑顔で『こんにちは！』",
+            "大きな声で『さようなら！』",
+            "『ありがとうございます』と感謝を伝える",
+            "校長先生にあいさつしよう",
+            "図書室の先生にあいさつ",
+            "名前を呼んで『〇〇さん、おはよう』",
+            "手をとめて丁寧にペコリ",
+            "遠くの友達に手を振ってあいさつ",
+            "『よろしくおねがいします』と言おう",
+            "『また明日ね！』と元気に返す",
+            "地域の人に『こんにちは！』",
+            "保健室の先生に『しつれいします』",
+            "『ごちそうさまでした』を伝えよう",
+            "ハイタッチであいさつ！",
+            "ぺこりと1秒おじぎ"
+        ];
+
+        function generateTilesFromPool(poolArray) {
+            const tiles = [];
+            const icons = ["🏫", "👟", "🎒", "🚰", "🩹", "📚", "✏️", "🌻", "🔬", "🎵", "🎨", "🏀", "🏃", "📐", "💻", "🔎", "🍳", "🌟", "🪜", "🏆"];
+            
+            for (let i = 1; i <= 100; i++) {
+                const randomIdea = poolArray[(i - 1) % poolArray.length];
+                let icon = icons[(i - 1) % icons.length];
+
+                if (i === 100) icon = "🕰️";
+
+                tiles.push({
+                    id: i,
+                    kanji: `${i}マス: ${randomIdea}`,
+                    hiragana: `${i}ます: ${randomIdea}`,
+                    icon: icon
+                });
+            }
+            return tiles;
+        }
+
+        let GREETING_POOL = [...DEFAULT_GREETING_POOL];
+        let MAP_TILES = generateTilesFromPool(GREETING_POOL);
+        const AVATARS = ['🦁', '🐰', '🐻', '🐱', '🐶', '🦊', '🐼', '🐸', '🚀', '⭐'];
+
+        let appState = {
+            isKanji: false,
+            soundEnabled: true,
+            userName: "あいさつ たろう",
+            userGrade: "1年生",
+            userAvatar: "🦁",
+            currentMonth: getCurrentMonthKey(),
+            monthlySteps: {},
+            totalGreetingCount: 0
+        };
+
+        let remoteUsersMap = {};
+
+        function getCurrentMonthKey() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        }
+
+        function getCurrentStep() {
+            const m = getCurrentMonthKey();
+            return appState.monthlySteps[m] || 1;
+        }
+
+        function setCurrentStep(step) {
+            const m = getCurrentMonthKey();
+            appState.monthlySteps[m] = step;
+            appState.currentMonth = m;
+        }
+
+        // Calculate current card floor level (100 steps per card)
+        function getCardLevel(step) {
+            return Math.floor((step - 1) / 100) + 1;
+        }
+
+        function getCardStepIndex(step) {
+            return ((step - 1) % 100) + 1;
+        }
+
+        // Local Storage
+        function loadSavedLocalData() {
+            const saved = localStorage.getItem('greeting_sugoroku_app_data_v4');
+            if (saved) {
+                try {
+                    appState = { ...appState, ...JSON.parse(saved) };
+                } catch(e) {}
+            }
+            const currentM = getCurrentMonthKey();
+            if (!appState.monthlySteps[currentM]) {
+                appState.monthlySteps[currentM] = 1;
+            }
+            appState.currentMonth = currentM;
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('greeting_sugoroku_app_data_v4', JSON.stringify(appState));
+        }
+
+        // Sound Engine
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (!appState.soundEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'move') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'goal') {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, index) => {
+                    const noteOsc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+                    noteOsc.connect(noteGain);
+                    noteGain.connect(audioCtx.destination);
+                    const noteTime = now + index * 0.12;
+                    noteOsc.type = 'triangle';
+                    noteOsc.frequency.setValueAtTime(freq, noteTime);
+                    noteGain.gain.setValueAtTime(0.3, noteTime);
+                    noteGain.gain.exponentialRampToValueAtTime(0.01, noteTime + 0.3);
+                    noteOsc.start(noteTime);
+                    noteOsc.stop(noteTime + 0.35);
+                });
+            }
+        }
+
+        // Firebase Auth & Realtime Sync
+        async function initFirebaseSync() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.warn("Auth fallback", e);
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (!user) return;
+                currentUser = user;
+
+                // Sync custom tiles from public storage
+                const tilesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'map_tiles');
+                onSnapshot(tilesDocRef, (snap) => {
+                    if (snap.exists()) {
+                        const d = snap.data();
+                        if (d.tiles) MAP_TILES = d.tiles;
+                        if (d.pool) GREETING_POOL = d.pool;
+                        renderUI();
+                    }
+                }, (err) => console.log(err));
+
+                // Listen to public players
+                const usersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+                onSnapshot(usersColRef, (snapshot) => {
+                    remoteUsersMap = {};
+                    snapshot.forEach(docSnap => {
+                        if (docSnap.id !== currentUser.uid) {
+                            remoteUsersMap[docSnap.id] = docSnap.data();
+                        }
+                    });
+                    renderUI();
+                }, (err) => console.log(err));
+
+                syncMyDataToCloud();
+            });
+        }
+
+        async function syncMyDataToCloud() {
+            if (!currentUser) return;
+            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', currentUser.uid);
+            try {
+                await setDoc(userDocRef, {
+                    name: appState.userName,
+                    grade: appState.userGrade,
+                    avatar: appState.userAvatar,
+                    currentMonth: getCurrentMonthKey(),
+                    step: getCurrentStep(),
+                    monthlySteps: appState.monthlySteps,
+                    updatedAt: Date.now()
+                }, { merge: true });
+            } catch (e) {
+                console.error("Cloud sync error", e);
+            }
+        }
+
+        // Render UI
+        function renderUI() {
+            const currentStep = getCurrentStep();
+            const cardLevel = getCardLevel(currentStep);
+            const tileInCard = getCardStepIndex(currentStep);
+            const currentMonth = getCurrentMonthKey();
+            const [y, m] = currentMonth.split('-');
+
+            document.getElementById('current-month-badge').innerText = appState.isKanji ? `今月: ${y}年${parseInt(m)}月` : `こんげつ: ${y}ねん${parseInt(m)}がつ`;
+            document.getElementById('user-name-display').querySelector('span').innerText = appState.userName || (appState.isKanji ? "なまえを入力してね" : "なまえを にゅうりょくしてね");
+            document.getElementById('user-grade-badge').innerText = appState.userGrade;
+            document.getElementById('user-avatar').innerText = appState.userAvatar;
+            document.getElementById('current-step-display').innerText = currentStep;
+            document.getElementById('current-card-level-display').innerText = cardLevel;
+            document.getElementById('current-card-badge').innerText = appState.isKanji ? `${cardLevel}階カード (${(cardLevel-1)*100+1}~${cardLevel*100})` : `${cardLevel}かい かーど (${(cardLevel-1)*100+1}~${cardLevel*100})`;
+
+            // Next Tile Target Text
+            const currentTileData = MAP_TILES[(tileInCard - 1) % MAP_TILES.length];
+            if (currentTileData) {
+                const targetText = appState.isKanji ? currentTileData.kanji : currentTileData.hiragana;
+                document.getElementById('next-tile-target-text').innerText = `${currentStep}マス目: ${targetText}`;
+            }
+
+            // Remote players ranking for current month
+            const remotePlayersList = Object.values(remoteUsersMap).map(p => {
+                const pStep = (p.monthlySteps && p.monthlySteps[currentMonth]) || (p.currentMonth === currentMonth ? p.step : 1);
+                return { ...p, step: pStep };
+            });
+
+            const allPlayers = [
+                { name: appState.userName, grade: appState.userGrade, avatar: appState.userAvatar, step: currentStep, isUser: true },
+                ...remotePlayersList
+            ].sort((a, b) => b.step - a.step);
+
+            const userRank = allPlayers.findIndex(p => p.isUser) + 1;
+            document.getElementById('school-rank-display').innerText = userRank;
+
+            // Render 100 Tiles for the active card
+            const gridContainer = document.getElementById('sugoroku-grid');
+            gridContainer.innerHTML = '';
+
+            for (let i = 1; i <= 100; i++) {
+                const absoluteTileId = (cardLevel - 1) * 100 + i;
+                const isCurrent = (currentStep === absoluteTileId);
+                const playersHere = remotePlayersList.filter(p => p.step === absoluteTileId);
+                const tileData = MAP_TILES[i - 1] || { kanji: `${i}マス`, hiragana: `${i}ます`, icon: "🏫" };
+
+                const tileEl = document.createElement('div');
+                tileEl.id = `tile-${i}`;
+                tileEl.className = `p-2 rounded-2xl border-2 flex flex-col items-center justify-between relative min-h-[95px] transition-all duration-200 ${
+                    isCurrent 
+                    ? 'bg-amber-200 border-amber-500 shadow-md scale-105 ring-4 ring-amber-300 z-10' 
+                    : i === 100 
+                        ? 'bg-gradient-to-b from-yellow-200 to-amber-300 border-yellow-500 shadow' 
+                        : 'bg-white border-amber-200 shadow-sm'
+                }`;
+
+                const labelText = appState.isKanji ? tileData.kanji : tileData.hiragana;
+                tileEl.innerHTML = `
+                    <div class="flex items-center justify-between w-full text-[10px] font-bold text-slate-400">
+                        <span>${absoluteTileId}マス</span>
+                        ${i === 100 ? '🕰️' : ''}
+                    </div>
+                    <div class="text-2xl my-1">${tileData.icon}</div>
+                    <div class="text-[10px] sm:text-xs font-black text-amber-900 text-center leading-tight line-clamp-2">${labelText}</div>
+                    
+                    <div class="flex items-center justify-center flex-wrap gap-1 mt-1 w-full">
+                        ${isCurrent ? `<span class="w-6 h-6 rounded-full bg-amber-400 border-2 border-white shadow flex items-center justify-center text-xs animate-piece" title="${appState.userName}">${appState.userAvatar}</span>` : ''}
+                        ${playersHere.map(p => `<span class="w-5 h-5 rounded-full bg-slate-200 border border-slate-400 flex items-center justify-center text-[10px]" title="${p.name}">${p.avatar}</span>`).join('')}
+                    </div>
+                `;
+                gridContainer.appendChild(tileEl);
+            }
+
+            // Render Leaderboard
+            const listContainer = document.getElementById('friends-list');
+            listContainer.innerHTML = '';
+            allPlayers.forEach((player, idx) => {
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-2.5 rounded-2xl border ${
+                    player.isUser ? 'bg-amber-200/90 border-amber-400 font-extrabold shadow-sm' : 'bg-white/80 border-amber-200'
+                }`;
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-6 text-center font-black ${idx === 0 ? 'text-yellow-600 text-lg' : idx === 1 ? 'text-slate-400 text-md' : idx === 2 ? 'text-amber-700 text-md' : 'text-slate-400 text-xs'}">
+                            ${idx + 1}
+                        </span>
+                        <span class="text-2xl">${player.avatar}</span>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-black ${player.isUser ? 'text-amber-950' : 'text-slate-700'}">${player.name}</span>
+                                ${player.isUser ? `<span class="bg-amber-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">じぶん</span>` : ''}
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400">${player.grade} (${getCardLevel(player.step)}階カード)</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm font-black text-amber-700">${player.step}</span>
+                        <span class="text-[10px] font-bold text-slate-500">マス</span>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        // Actions
+        window.advanceStep = function(greetingLabel) {
+            let currentStep = getCurrentStep();
+            const prevCard = getCardLevel(currentStep);
+            
+            currentStep += 1;
+            setCurrentStep(currentStep);
+            appState.totalGreetingCount += 1;
+            playSound('move');
+
+            confetti({ particleCount: 20, spread: 50, origin: { y: 0.7 } });
+
+            saveLocalData();
+            syncMyDataToCloud();
+            renderUI();
+
+            const nextCard = getCardLevel(currentStep);
+            jumpToTileSection(getCardStepIndex(currentStep));
+
+            if (currentStep % 100 === 0 || nextCard > prevCard) {
+                setTimeout(() => triggerGoal(), 400);
+            }
+        };
+
+        window.advanceWithCurrentTile = function() {
+            const currentStep = getCurrentStep();
+            const tileInCard = getCardStepIndex(currentStep);
+            const currentTileData = MAP_TILES[(tileInCard - 1) % MAP_TILES.length];
+            const tileLabel = currentTileData ? (appState.isKanji ? currentTileData.kanji : currentTileData.hiragana) : 'おだい達成';
+            window.advanceStep(tileLabel);
+        };
+
+        window.jumpToTileSection = function(tileIdx) {
+            const el = document.getElementById(`tile-${tileIdx}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        function triggerGoal() {
+            playSound('goal');
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+
+            document.getElementById('goal-user-name').innerText = `${appState.userName || 'あいさつ めいじん'} さん`;
+            document.getElementById('goal-modal').classList.remove('hidden');
+        }
+
+        window.restartSugorokuLoop = function() {
+            document.getElementById('goal-modal').classList.add('hidden');
+            renderUI();
+        };
+
+        // Modal Open / Close Functions
+        window.openAdminAuthModal = function() {
+            document.getElementById('admin-pass-input').value = '';
+            document.getElementById('admin-auth-view').classList.remove('hidden');
+            document.getElementById('admin-editor-view').classList.add('hidden');
+            document.getElementById('admin-modal').classList.remove('hidden');
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        };
+
+        window.verifyAdminPass = function() {
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === '1234') {
+                document.getElementById('admin-auth-view').classList.add('hidden');
+                document.getElementById('admin-editor-view').classList.remove('hidden');
+                document.getElementById('admin-editor-view').classList.add('flex');
+                renderAdminEditorList();
+            } else {
+                alert('パスワードがちがいます！（初期設定: 1234）');
+            }
+        };
+
+        window.openProfileModal = function() {
+            document.getElementById('name-input').value = appState.userName;
+            document.getElementById('grade-select').value = appState.userGrade;
+            
+            const avatarContainer = document.getElementById('avatar-selector');
+            avatarContainer.innerHTML = '';
+            AVATARS.forEach(av => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `p-2 text-2xl rounded-xl border-2 transition ${appState.userAvatar === av ? 'bg-amber-200 border-amber-500 scale-110' : 'bg-slate-50 border-slate-200'}`;
+                btn.innerText = av;
+                btn.onclick = () => {
+                    appState.userAvatar = av;
+                    openProfileModal();
+                };
+                avatarContainer.appendChild(btn);
+            });
+            document.getElementById('profile-modal').classList.remove('hidden');
+        };
+
+        window.closeProfileModal = function() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        };
+
+        window.saveProfile = function() {
+            const nameVal = document.getElementById('name-input').value.trim();
+            if (nameVal) appState.userName = nameVal;
+            appState.userGrade = document.getElementById('grade-select').value;
+            saveLocalData();
+            syncMyDataToCloud();
+            renderUI();
+            closeProfileModal();
+        };
+
+        window.openHistoryModal = function() {
+            const list = document.getElementById('monthly-history-list');
+            list.innerHTML = '';
+            const months = Object.keys(appState.monthlySteps).sort().reverse();
+            if (months.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">まだきろくがありません</p>';
+            } else {
+                months.forEach(m => {
+                    const [y, mon] = m.split('-');
+                    const step = appState.monthlySteps[m];
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold';
+                    item.innerHTML = `
+                        <span class="text-amber-900">${y}年 ${parseInt(mon)}月</span>
+                        <span class="text-amber-600 font-black">${step} マス目まで到達 (${getCardLevel(step)}階カード)</span>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+            document.getElementById('history-modal').classList.remove('hidden');
+        };
+
+        window.closeHistoryModal = function() {
+            document.getElementById('history-modal').classList.add('hidden');
+        };
+
+        window.setKanjiMode = function(isKanji) {
+            appState.isKanji = isKanji;
+            const btnHira = document.getElementById('mode-hiragana');
+            const btnKanji = document.getElementById('mode-kanji');
+            if (isKanji) {
+                btnKanji.className = "px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 bg-amber-500 text-white shadow-sm";
+                btnHira.className = "px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 text-amber-800 hover:text-amber-950";
+            } else {
+                btnHira.className = "px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 bg-amber-500 text-white shadow-sm";
+                btnKanji.className = "px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 text-amber-800 hover:text-amber-950";
+            }
+
+            document.querySelectorAll('[data-kanji]').forEach(el => {
+                el.innerText = isKanji ? el.getAttribute('data-kanji') : el.getAttribute('data-hiragana');
+            });
+
+            saveLocalData();
+            renderUI();
+        };
+
+        window.toggleSound = function() {
+            appState.soundEnabled = !appState.soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (appState.soundEnabled) {
+                icon.className = 'fas fa-volume-up text-base';
+            } else {
+                icon.className = 'fas fa-volume-mute text-base text-slate-400';
+            }
+            saveLocalData();
+        };
+
+        // Admin Customization Editor Tabs & Shuffling Logic
+        window.switchAdminTab = function(tab) {
+            const btnPool = document.getElementById('tab-btn-pool');
+            const btnTiles = document.getElementById('tab-btn-tiles');
+            const tabPool = document.getElementById('admin-tab-pool');
+            const tabTiles = document.getElementById('admin-tab-tiles');
+
+            if (tab === 'pool') {
+                btnPool.className = "px-3 py-1.5 border-b-2 border-amber-500 text-amber-700 font-bold";
+                btnTiles.className = "px-3 py-1.5 text-slate-500 hover:text-slate-700 font-bold";
+                tabPool.classList.remove('hidden');
+                tabTiles.classList.add('hidden');
+            } else {
+                btnTiles.className = "px-3 py-1.5 border-b-2 border-amber-500 text-amber-700 font-bold";
+                btnPool.className = "px-3 py-1.5 text-slate-500 hover:text-slate-700 font-bold";
+                tabTiles.classList.remove('hidden');
+                tabPool.classList.add('hidden');
+            }
+        };
+
+        function renderAdminEditorList() {
+            document.getElementById('admin-pool-textarea').value = GREETING_POOL.join('\n');
+
+            const list = document.getElementById('admin-tile-list');
+            list.innerHTML = '';
+            MAP_TILES.forEach((tile, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 p-2 bg-white rounded-lg border text-xs';
+                row.innerHTML = `
+                    <span class="font-bold w-12 text-amber-800">${tile.id}マス</span>
+                    <input type="text" value="${tile.icon}" class="w-10 text-center border rounded p-1 text-base admin-tile-icon" data-idx="${index}">
+                    <input type="text" value="${tile.kanji}" placeholder="漢字表記" class="flex-1 border rounded p-1 font-bold admin-tile-kanji" data-idx="${index}">
+                    <input type="text" value="${tile.hiragana}" placeholder="ひらがな表記" class="flex-1 border rounded p-1 admin-tile-hira" data-idx="${index}">
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        window.shuffleAndDistributePool = function() {
+            const poolLines = document.getElementById('admin-pool-textarea').value
+                .split('\n')
+                .map(l => l.trim())
+                .filter(l => l.length > 0);
+
+            if (poolLines.length === 0) {
+                alert('お題リストが空です！');
+                return;
+            }
+
+            GREETING_POOL = poolLines;
+
+            // Fisher-Yates shuffle helper
+            const shuffledPool = [...GREETING_POOL];
+            for (let i = shuffledPool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
+            }
+
+            MAP_TILES = generateTilesFromPool(shuffledPool);
+            renderAdminEditorList();
+            alert('お題リストをランダムにシャッフルして100マスに配置しました！');
+        };
+
+        window.resetTilesToDefault = function() {
+            GREETING_POOL = [...DEFAULT_GREETING_POOL];
+            MAP_TILES = generateTilesFromPool(GREETING_POOL);
+            renderAdminEditorList();
+        };
+
+        window.saveAdminTiles = async function() {
+            const poolLines = document.getElementById('admin-pool-textarea').value
+                .split('\n')
+                .map(l => l.trim())
+                .filter(l => l.length > 0);
+
+            if (poolLines.length > 0) {
+                GREETING_POOL = poolLines;
+            }
+
+            const kanjiInputs = document.querySelectorAll('.admin-tile-kanji');
+            const hiraInputs = document.querySelectorAll('.admin-tile-hira');
+            const iconInputs = document.querySelectorAll('.admin-tile-icon');
+
+            if (kanjiInputs.length > 0) {
+                const updatedTiles = [];
+                kanjiInputs.forEach((input, i) => {
+                    updatedTiles.push({
+                        id: i + 1,
+                        kanji: input.value.trim() || `${i + 1}マス`,
+                        hiragana: hiraInputs[i].value.trim() || `${i + 1}ます`,
+                        icon: iconInputs[i].value.trim() || '🏫'
+                    });
+                });
+                MAP_TILES = updatedTiles;
+            }
+
+            if (currentUser) {
+                const tilesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'map_tiles');
+                try {
+                    await setDoc(tilesDocRef, { pool: GREETING_POOL, tiles: MAP_TILES, updatedAt: Date.now() });
+                } catch (e) {
+                    console.error("Failed to sync tiles to cloud", e);
+                }
+            }
+
+            renderUI();
+            closeAdminModal();
+            alert('全校児童に新しいコースが配信・保存されました！');
+        };
+
+        // Window Onload
+        window.onload = function() {
+            loadSavedLocalData();
+            setKanjiMode(appState.isKanji);
+            renderUI();
+            initFirebaseSync();
+        };
+    </script>
+</body>
+</html>
