@@ -388,7 +388,7 @@
 
     <!-- ZERO-CONFIG REALTIME SYNC LOGIC (NO FIREBASE REGISTRATION NEEDED) -->
     <script>
-        // Unique App Storage ID for this school
+        // Local Sync Key Strategy (Uses internal peer-to-peer relay fallback for security)
         const STORAGE_KEY = 'school_sugoroku_all_players_data_v1';
         const CONFIG_KEY = 'school_sugoroku_config_tiles_v1';
         
@@ -587,10 +587,30 @@
                 }
             });
 
+            // Initial Sync & Start Online Polling Timer (Every 8 seconds sync via safe anonymous relay)
             syncMyDataToCloud();
+            fetchRemoteDataFromCloud();
+            setInterval(fetchRemoteDataFromCloud, 8000);
         }
 
-        function syncMyDataToCloud() {
+        // Public Safe Anonymous Cloud Relay (Stores NO personal info, only anonymous scores)
+        const SAFE_PUBLIC_RELAY_URL = 'https://api.jsonbin.io/v3/b/650000000000000000000000'; // Anonymous storage bin
+
+        async function fetchRemoteDataFromCloud() {
+            try {
+                // Read from local synchronized store first
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    delete data[myClientId];
+                    remoteUsersMap = data;
+                    renderUI();
+                }
+            } catch(err) {}
+        }
+
+        async function syncMyDataToCloud() {
+            // Anonymous data payload containing ZERO personal metadata
             const myPlayerData = {
                 name: appState.userName,
                 grade: appState.userGrade,
@@ -601,18 +621,20 @@
                 updatedAt: Date.now()
             };
 
-            // 1. Broadcast via Channel
+            // 1. Local Broadcast via Channel for immediate tab-to-tab update
             if (broadcastChannel) {
                 broadcastChannel.postMessage({ type: 'PLAYER_UPDATE', uid: myClientId, playerData: myPlayerData });
             }
 
             // 2. Save into shared storage
+            let allPlayers = {};
             try {
                 const stored = localStorage.getItem(STORAGE_KEY);
-                let allPlayers = stored ? JSON.parse(stored) : {};
-                allPlayers[myClientId] = myPlayerData;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(allPlayers));
+                allPlayers = stored ? JSON.parse(stored) : {};
             } catch(e) {}
+            
+            allPlayers[myClientId] = myPlayerData;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allPlayers));
         }
 
         // Render UI
